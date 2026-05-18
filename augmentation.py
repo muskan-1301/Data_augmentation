@@ -1,6 +1,7 @@
 import numpy as np
-from PIL import Image, ImageEnhance, ImageOps
+from PIL import Image, ImageFilter, ImageEnhance, ImageOps
 import random
+import math
 
 
 # ─────────────────────────────────────────────
@@ -8,10 +9,6 @@ import random
 # ─────────────────────────────────────────────
 
 def rotate_image(img: Image.Image, angle: float) -> Image.Image:
-    """
-    Rotate image by `angle` degrees.
-    Fills background with the image's mean colour to avoid black borders.
-    """
     # Cache mean calculation
     arr = np.array(img)
     fill = tuple(int(c) for c in arr.mean(axis=(0, 1)))
@@ -20,9 +17,6 @@ def rotate_image(img: Image.Image, angle: float) -> Image.Image:
 
 
 def flip_image(img: Image.Image, mode: str = "horizontal") -> Image.Image:
-    """
-    Flip image.  mode ∈ {'horizontal', 'vertical', 'both'}
-    """
     if mode == "horizontal":
         return img.transpose(Image.FLIP_LEFT_RIGHT)
     elif mode == "vertical":
@@ -34,9 +28,6 @@ def flip_image(img: Image.Image, mode: str = "horizontal") -> Image.Image:
 
 
 def zoom_image(img: Image.Image, zoom: float = 1.3) -> Image.Image:
-    """
-    Zoom into the centre by factor `zoom`, then resize back to original dims.
-    """
     W, H = img.size
     new_W = int(W / zoom)
     new_H = int(H / zoom)
@@ -48,10 +39,6 @@ def zoom_image(img: Image.Image, zoom: float = 1.3) -> Image.Image:
 
 
 def translate_image(img: Image.Image, dx_pct: int = 15, dy_pct: int = 15) -> Image.Image:
-    """
-    Translate (shift) image by dx_pct % and dy_pct % of width/height.
-    Empty regions are filled with mean colour.
-    """
     W, H = img.size
     dx = int(W * dx_pct / 100)
     dy = int(H * dy_pct / 100)
@@ -74,42 +61,32 @@ def translate_image(img: Image.Image, dx_pct: int = 15, dy_pct: int = 15) -> Ima
 
 
 def brightness_adjust(img: Image.Image, factor: float = 1.4) -> Image.Image:
-    """Multiply brightness by `factor`.  factor < 1 → darker, > 1 → brighter."""
     return ImageEnhance.Brightness(img).enhance(factor)
 
 
 
 def contrast_adjust(img: Image.Image, factor: float = 1.4) -> Image.Image:
-    """Adjust contrast by `factor`."""
     return ImageEnhance.Contrast(img).enhance(factor)
 
 
 
 def color_jitter(img: Image.Image) -> Image.Image:
-    """
-    Random colour jitter: brightness, contrast, saturation
-    perturbed independently.
-    """
     br = random.uniform(0.6, 1.4)
     co = random.uniform(0.6, 1.4)
     sa = random.uniform(0.6, 1.4)
-
     img = ImageEnhance.Brightness(img).enhance(br)
     img = ImageEnhance.Contrast(img).enhance(co)
     img = ImageEnhance.Color(img).enhance(sa)
-
     return img
 
 
 
 def grayscale_convert(img: Image.Image) -> Image.Image:
-    """Convert to grayscale but keep 3-channel output."""
     return ImageOps.grayscale(img).convert("RGB")
 
 
 
 def solarize_image(img: Image.Image, threshold: int = 128) -> Image.Image:
-    """
-    Invert pixel values above `threshold`.
-    """
     return ImageOps.solarize(img, threshold)
+
+
